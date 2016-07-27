@@ -1,0 +1,17 @@
+{
+  "name": "labrat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "labrat.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FiveYellowMice/labrat.git"
+  },
+  "author": "FiveYellowMice",
+  "license": "WTFPL",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/FiveYellowMice/labrat/issues"
+  },
+  "homepage": "https://github.com/FiveYellowMice/labrat"
+}

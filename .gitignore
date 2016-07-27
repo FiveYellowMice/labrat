@@ -1,0 +1,15 @@
+# File manager
+.directory
+
+# Editor
+.~*
+*~
+*.kate-swp
+*.swp
+
+# NPM
+node_modules
+.npm
+
+# Private data
+config.js
