@@ -3,7 +3,7 @@ const config = require("./config.js");
 
 console.log("Starting LabRat...");
 http.createServer(function(request, response) {
-	var webhookRegex = /\/.*?\/(.*?)\/.*/;
+	var webhookRegex = /\/webhooks\/(.*?)\/.*/;
 	if (webhookRegex.test(request.url)) {
 		switch (request.url.match(webhookRegex)[1]) {
 			case "telegram":
