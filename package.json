@@ -13,5 +13,9 @@
   "bugs": {
     "url": "https://github.com/FiveYellowMice/labrat/issues"
   },
-  "homepage": "https://github.com/FiveYellowMice/labrat"
+  "homepage": "https://github.com/FiveYellowMice/labrat",
+  "dependencies": {
+    "rss-parser": "^2.5.1",
+    "sqlite3": "^3.1.4"
+  }
 }
