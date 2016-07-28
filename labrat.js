@@ -24,4 +24,4 @@ http.createServer(function(request, response) {
 	console.log(`HTTP server started, listening on [${config.listenAddress}]:${config.listenPort}.`);
 });
 
-rssReceiver.start();
+config.rss.url && rssReceiver.start();
