@@ -2,6 +2,7 @@ const http = require("http");
 const config = require("./config.js");
 const telegramBot = require("./lib/telegram.js");
 const rssReceiver = require("./lib/rss.js");
+const twitterSync = require("./lib/twitter.js");
 
 console.log("Starting LabRat...");
 http.createServer(function(request, response) {
@@ -25,3 +26,4 @@ http.createServer(function(request, response) {
 });
 
 config.rss.url && rssReceiver.start();
+config.twitter.consumerKey && twitterSync.start();
