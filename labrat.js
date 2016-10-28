@@ -1,6 +1,6 @@
 const http = require("http");
 const config = require("./config.js");
-const telegramBot = require("./lib/telegram.js");
+const telegramReceiver = require("./lib/telegram-receiver.js");
 const rssReceiver = require("./lib/rss.js");
 const twitterSync = require("./lib/twitter.js");
 
@@ -10,7 +10,7 @@ http.createServer(function(request, response) {
   if (webhookRegex.test(request.url)) {
     switch (request.url.match(webhookRegex)[1]) {
       case "telegram":
-        telegramBot.processWebhook(request, response);
+        telegramReceiver.processWebhook(request, response);
       default:
         response.statusCode = 404;
         response.end("No such webhook.\n");
