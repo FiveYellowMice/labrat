@@ -19,5 +19,8 @@
     "rss-parser": "^2.5.1",
     "sqlite3": "^3.1.4",
     "twitter": "^1.4.0"
+  },
+  "scripts": {
+    "devstart": "LABRAT_ENV=dev node labrat.js"
   }
 }
