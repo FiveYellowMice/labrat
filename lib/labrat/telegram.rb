@@ -1,5 +1,7 @@
 require 'json'
+require 'openssl'
 require 'concurrent'
+require 'active_support/core_ext/object/blank'
 require 'telegram/bot'
 
 ##
@@ -59,7 +61,7 @@ class LabRat::Telegram
         )
       end
     when Telegram::Bot::Types::InlineQuery
-      #
+      handle_inline_query message
     end
   end
 
@@ -115,6 +117,56 @@ class LabRat::Telegram
   end
 
   private :handle_command
+
+
+  ##
+  # Respond to an inline query.
+
+  def handle_inline_query(message)
+    results = [
+      if message.query.blank?
+        Telegram::Bot::Types::InlineQueryResultArticle.new(
+          title: 'Google',
+          input_message_content: Telegram::Bot::Types::InputTextMessageContent.new(
+            message_text: "https://www.google.com/"
+          )
+        )
+      else
+        Telegram::Bot::Types::InlineQueryResultArticle.new(
+          title: "#{message.query} - Google",
+          input_message_content: Telegram::Bot::Types::InputTextMessageContent.new(
+            message_text: "https://www.google.com/search?q=#{CGI.escape(message.query)}"
+          )
+        )
+      end,
+      if message.query.blank?
+        Telegram::Bot::Types::InlineQueryResultArticle.new(
+          title: 'Wikipedia',
+          input_message_content: Telegram::Bot::Types::InputTextMessageContent.new(
+            message_text: "https://zh.wikipedia.org/"
+          )
+        )
+      else
+        Telegram::Bot::Types::InlineQueryResultArticle.new(
+          title: "#{message.query} - Wikipedia",
+          input_message_content: Telegram::Bot::Types::InputTextMessageContent.new(
+            message_text: "https://zh.wikipedia.org/wiki/#{encode_uri_component(message.query)}"
+          )
+        )
+      end
+    ].compact.map do |item|
+      item.id = OpenSSL::Digest::SHA1.new.digest(item.input_message_content.message_text).codepoints.map{|c| c.to_s(16) }.join
+      item
+    end
+
+    @api.answer_inline_query(
+      inline_query_id: message.id,
+      cache_time: 0,
+      results: results
+    )
+  end
+
+  private :handle_inline_query
 
 
   autoload :Command,        'labrat/telegram/command'
