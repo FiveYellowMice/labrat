@@ -15,7 +15,7 @@ module LabRat::Bootstrap
     @logger = Logger.new(STDOUT)
     @logger.level = Logger::Severity::INFO
 
-    @options = Options.new('config.rb', 'var', false)
+    @options = Options.new('config.rb', 'var', false, nil)
 
     OptionParser.new do |parser|
       parser.banner = "Usage: labrat [options]"
@@ -31,6 +31,10 @@ module LabRat::Bootstrap
       parser.on('-D', '--debug', "Turn on debug mode.") do
         @options.debug_mode = true
         @logger.level = Logger::Severity::DEBUG
+      end
+
+      parser.on('--test-tweet ID', Integer, "Disable polling, fetch a Tweet by ID.") do |arg|
+        @options.test_tweet = arg
       end
 
       parser.on('-h', '--help', "Show help.") do
@@ -61,12 +65,13 @@ module LabRat::Bootstrap
     Thread.abort_on_exception = true
 
     @telegram = LabRat::Telegram.new(self)
+    @twitter_sync = LabRat::TwitterSync.new(self)
 
     sleep
   end
 
 
-  Options = Struct.new(:config_file_path, :data_dir, :debug_mode)
+  Options = Struct.new(:config_file_path, :data_dir, :debug_mode, :test_tweet)
 
   Config = Struct.new(:http, :telegram, :rss, :twitter)
 

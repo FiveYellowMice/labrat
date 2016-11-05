@@ -5,3 +5,4 @@ gem 'activesupport'
 gem 'concurrent-ruby'
 
 gem 'telegram-bot-ruby'
+gem 'twitter'

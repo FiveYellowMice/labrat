@@ -24,18 +24,22 @@ class LabRat::Telegram
         @api = helper.api
 
         loop do
-          begin
-            helper.listen do |message|
-              Concurrent::Future.execute do
-                begin
-                  receive(message)
-                rescue => e
-                  log_error e
+          unless @options.test_tweet
+            begin
+              helper.listen do |message|
+                Concurrent::Future.execute do
+                  begin
+                    receive(message)
+                  rescue => e
+                    log_error e
+                  end
                 end
               end
+            rescue Telegram::Bot::Exceptions::ResponseError => e
+              log_error e
             end
-          rescue Telegram::Bot::Exceptions::ResponseError => e
-            log_error e
+          else
+            sleep
           end
         end
       end

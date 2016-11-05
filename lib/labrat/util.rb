@@ -42,7 +42,8 @@ module LabRat::Util
 
 
   def log_error(err)
-    @logger.error(self.class.name) { "#{err} #{err.backtrace_locations[0]}" }
+    @logger.error(self.class.name) { "#{err.class}: #{err} #{err.backtrace_locations[0]}" }
+    puts err.backtrace.join("\n") if @options.debug_mode
   end
 
 
