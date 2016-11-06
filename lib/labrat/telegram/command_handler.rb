@@ -53,4 +53,15 @@ class LabRat::Telegram::CommandHandler
   end
 
 
+  def sync_twitter_now(command)
+    if command.message.from.id == @config.telegram.owner_id
+      @adapter.reply_message(command.message, text: 'Syncing with Twitter now...')
+      @bot.twitter_sync.run
+      @adapter.reply_message(command.message, text: 'Sync complete.')
+    else
+      @adapter.reply_message(command.message, text: "You don't have privilege to use this command.")
+    end
+  end
+
+
 end

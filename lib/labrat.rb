@@ -1,6 +1,7 @@
 class LabRat
 
-  attr_reader :logger, :options, :config, :telegram
+  attr_reader :logger, :options, :config
+  attr_reader :telegram, :twitter_sync
 
   autoload :Bootstrap,   'labrat/bootstrap'
   autoload :Util,        'labrat/util'
