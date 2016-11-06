@@ -117,11 +117,11 @@ class LabRat::TwitterSync
 
         log_debug { "#{i} #{entity.class} #{entity.indices}" }
 
-        text_before_entity = text[         0         ,        entity.indices[0]        ]
-        text_after_entity  = text[ entity.indices[1] , text.length - entity.indices[1] ]
+        text_before_entity = text[         0         ... entity.indices[0] ]
+        text_after_entity  = text[ entity.indices[1] ..         -1         ]
 
         log_debug { "Text before entity: #{text_before_entity}" }
-        log_debug { "Text after entity:  #{text_after_entity}" }
+        log_debug { "Text after entity: #{text_after_entity}" }
 
         if !previous_entity
           # Last entity in position.
@@ -133,8 +133,9 @@ class LabRat::TwitterSync
           text_before_entity = h(text_before_entity)
         else
           # If there is next entity.
-          text_between_next_and_current_entity = text_before_entity[ next_entity.indices[1] , entity.indices[0] - next_entity.indices[1] ]
-          text_before_end_of_next_entity = text_before_entity[ 0 , next_entity.indices[1] ]
+          text_between_next_and_current_entity = text_before_entity[ next_entity.indices[1] ...    entity.indices[0]   ]
+          text_before_end_of_next_entity       = text_before_entity[           0            ... next_entity.indices[1] ]
+
           text_before_entity = text_before_end_of_next_entity + h(text_between_next_and_current_entity)
         end
 
