@@ -63,13 +63,13 @@ class LabRat::TwitterSync
       params[:since_id] = last_tweet_id
     end
 
-    tweets = @api.home_timeline(params).delete_if do |t|
-      t.in_reply_to_user_id || t.source =~ /labrat/i
+    tweets = @api.user_timeline(params).delete_if do |t|
+      t.reply? || t.source =~ /labrat/i
     end.sort do |a, b|
       a.created_at - b.created_at
     end
 
-    log_info { "Fount #{tweets.length} new Tweets." }
+    log_info { "Found #{tweets.length} new Tweets." }
 
     tweets.each do |tweet|
       process_tweet tweet
