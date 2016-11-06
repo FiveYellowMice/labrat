@@ -81,6 +81,33 @@ class LabRat::TwitterSync
 
   def process_tweet(tweet)
     log_info { "New Tweet: #{tweet.uri}" }
+
+    text = convert_all_entities(tweet)
+
+    if tweet.retweeted?
+      text = "From <a href=\"https://twitter.com/#{tweet.user.screen_name}\">@#{tweet.user.screen_name}</a>:\n" + text
+    elsif tweet.quoted_status?
+      text = text + "\n\n" +
+        "From <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
+        convert_all_entities(tweet.quoted_status)
+    end
+
+    text = text + "\n\n<a href=\"#{tweet.uri}\">Reply</a>"
+
+    @bot.telegram.api.send_message(
+      chat_id: @config.twitter.target_channel,
+      text: text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true
+    )
+
+  end
+
+
+  ##
+  # Convert all entities in a Tweet to HTML string.
+
+  def convert_all_entities(tweet)
     log_debug { tweet.text }
 
     text = tweet.text
@@ -107,35 +134,6 @@ class LabRat::TwitterSync
     # Remove all media entities from list.
     entities.delete_if {|e| e.respond_to? :sizes }
 
-    text = convert_all_entities(text, entities)
-
-    if tweet.retweeted?
-      text = "From <a href=\"https://twitter.com/#{tweet.user.screen_name}\">@#{tweet.user.screen_name}</a>:\n" + text
-    elsif tweet.quoted_status?
-      text = text + "\n\n" +
-        "From <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
-        convert_all_entities(
-          tweet.quoted_status.text,
-          tweet.quoted_status.uris + tweet.quoted_status.user_mentions + tweet.quoted_status.hashtags
-        )
-    end
-
-    text = text + "\n\n<a href=\"#{tweet.uri}\">Reply</a>"
-
-    @bot.telegram.api.send_message(
-      chat_id: @config.twitter.target_channel,
-      text: text,
-      parse_mode: 'HTML',
-      disable_web_page_preview: true
-    )
-
-  end
-
-
-  ##
-  # Convert all entities in a Tweet to HTML string.
-
-  def convert_all_entities(text, entities)
     if entities.any?
       log_debug { "There are #{entities.length} entities." }
 
@@ -172,12 +170,11 @@ class LabRat::TwitterSync
 
         log_debug { "Text after converting this entity: #{text}" }
       end
-
-      return text
-
     else
-      return h(text)
+      text = h(text)
     end
+
+    return text
   end
 
 
