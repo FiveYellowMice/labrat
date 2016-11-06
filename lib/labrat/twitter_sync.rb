@@ -81,12 +81,31 @@ class LabRat::TwitterSync
 
   def process_tweet(tweet)
     log_info { "New Tweet: #{tweet.uri}" }
-    log_debug { tweet.full_text }
+    log_debug { tweet.text }
 
-    text = tweet.full_text
+    text = tweet.text
 
-    entities = tweet.uris + tweet.user_mentions + tweet.hashtags
+    entities = tweet.uris + tweet.user_mentions + tweet.hashtags + tweet.media
     entities.sort! {|a, b| b.indices[0] - a.indices[0] } # Reverse
+
+    # Remove last entity that is a link to media or quoted Tweet or truncated.
+    if entities[0] && entities[0].indices[1] == tweet.text.length
+      last_entity = entities[0]
+      if
+        last_entity.respond_to?(:sizes) ||
+        (
+          last_entity.is_a?(Twitter::Entity::URI) &&
+          (tweet.truncated? || tweet.quoted_status?)
+        )
+      then
+        log_debug { "Last entity should be removed." }
+        text = text[ 0 ... last_entity.indices[0] ]
+        entities.shift
+      end
+    end
+
+    # Remove all media entities from list.
+    entities.delete_if {|e| e.respond_to? :sizes }
 
     if entities.any?
       log_debug { "There are #{entities.length} entities." }
