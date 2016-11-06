@@ -73,6 +73,7 @@ class LabRat::TwitterSync
 
     tweets.each do |tweet|
       process_tweet tweet
+      self.last_tweet_id = tweet.id unless @options.debug_mode
     end
   end
 
@@ -83,59 +84,27 @@ class LabRat::TwitterSync
   def process_tweet(tweet)
     log_info { "New Tweet: #{tweet.uri}" }
 
-    tweet.media.each do |media|
-      log_debug { media.class.to_s }
-
-      begin
-        case media
-        when Twitter::Media::Photo
-          @bot.telegram.api.send_photo(
-            chat_id: @config.twitter.target_channel,
-            photo: media.media_url_https,
-            disable_notification: true
-          )
-        when Twitter::Media::Video
-          video_url = media.video_info.variants.select {|v|
-            v.content_type == 'video/mp4'
-          }.sort {|a, b|
-            a.bitrate - b.bitrate
-          }[-1].url
-
-          if video_url
-            @bot.telegram.api.send_video(
-              chat_id: @config.twitter.target_channel,
-              video: video_url,
-              disable_notification: true
-            )
-          end
-        else
-          @bot.telegram.api.send_message(
-            chat_id: @config.twitter.target_channel,
-            text: "Unsupported media type:\n" + '<code>' + h(JSON.pretty_generate(media.to_h)) + '</code>',
-            parse_mode: 'HTML',
-            disable_notification: true
-          )
-        end
-      rescue => e
-        log_error e
-        @bot.telegram.api.send_message(
-          chat_id: @config.twitter.target_channel,
-          text: "Error sending media: #{e.class} #{e}",
-          disable_notification: true
-        )
-      end
-    end
-
-    text =
     if tweet.retweeted?
-      "From <a href=\"https://twitter.com/#{tweet.user.screen_name}\">@#{tweet.user.screen_name}</a>:\n" +
-      convert_all_entities(tweet)
+      text =
+      "From <a href=\"https://twitter.com/#{tweet.retweeted_status.user.screen_name}\">@#{tweet.retweeted_status.user.screen_name}</a>:\n" +
+      convert_all_entities(tweet.retweeted_status)
+
+      send_media_of tweet.retweeted_status
+
     elsif tweet.quoted_status?
+      text =
       convert_all_entities(tweet) + "\n\n" +
       "From <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
       convert_all_entities(tweet.quoted_status)
+
+      send_media_of tweet.quoted_status
+
     else
+      text =
       convert_all_entities(tweet)
+
+      send_media_of tweet
+
     end
 
     text = text + "\n\n<a href=\"#{tweet.uri}\">Reply</a>"
@@ -237,6 +206,55 @@ class LabRat::TwitterSync
       "<a href=\"https://twitter.com/hashtag/#{h encode_uri_component entity.text}\">##{h entity.text}</a>"
     else
       ''
+    end
+  end
+
+
+  ##
+  # Send media of Tweet.
+
+  def send_media_of(tweet)
+    tweet.media.each do |media|
+      log_debug { media.class.to_s }
+
+      begin
+        case media
+        when Twitter::Media::Photo
+          @bot.telegram.api.send_photo(
+            chat_id: @config.twitter.target_channel,
+            photo: media.media_url_https,
+            disable_notification: true
+          )
+        when Twitter::Media::Video
+          video_url = media.video_info.variants.select {|v|
+            v.content_type == 'video/mp4'
+          }.sort {|a, b|
+            a.bitrate - b.bitrate
+          }[-1].url
+
+          if video_url
+            @bot.telegram.api.send_video(
+              chat_id: @config.twitter.target_channel,
+              video: video_url,
+              disable_notification: true
+            )
+          end
+        else
+          @bot.telegram.api.send_message(
+            chat_id: @config.twitter.target_channel,
+            text: "Unsupported media type:\n" + '<code>' + h(JSON.pretty_generate(media.to_h)) + '</code>',
+            parse_mode: 'HTML',
+            disable_notification: true
+          )
+        end
+      rescue => e
+        log_error e
+        @bot.telegram.api.send_message(
+          chat_id: @config.twitter.target_channel,
+          text: "Error sending media: #{e.class} #{e}",
+          disable_notification: true
+        )
+      end
     end
   end
 
