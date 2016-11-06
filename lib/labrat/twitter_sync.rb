@@ -1,4 +1,5 @@
 require 'cgi'
+require 'json'
 require 'concurrent'
 require 'active_support/core_ext/numeric/time'
 require 'twitter'
@@ -81,6 +82,49 @@ class LabRat::TwitterSync
 
   def process_tweet(tweet)
     log_info { "New Tweet: #{tweet.uri}" }
+
+    tweet.media.each do |media|
+      log_debug { media.class.to_s }
+
+      begin
+        case media
+        when Twitter::Media::Photo
+          @bot.telegram.api.send_photo(
+            chat_id: @config.twitter.target_channel,
+            photo: media.media_url_https,
+            disable_notification: true
+          )
+        when Twitter::Media::Video
+          video_url = media.video_info.variants.select {|v|
+            v.content_type == 'video/mp4'
+          }.sort {|a, b|
+            a.bitrate - b.bitrate
+          }[-1].url
+
+          if video_url
+            @bot.telegram.api.send_video(
+              chat_id: @config.twitter.target_channel,
+              video: video_url,
+              disable_notification: true
+            )
+          end
+        else
+          @bot.telegram.api.send_message(
+            chat_id: @config.twitter.target_channel,
+            text: "Unsupported media type:\n" + '<code>' + h(JSON.pretty_generate(media.to_h)) + '</code>',
+            parse_mode: 'HTML',
+            disable_notification: true
+          )
+        end
+      rescue => e
+        log_error e
+        @bot.telegram.api.send_message(
+          chat_id: @config.twitter.target_channel,
+          text: "Error sending media: #{e.class} #{e}",
+          disable_notification: true
+        )
+      end
+    end
 
     text =
     if tweet.retweeted?
