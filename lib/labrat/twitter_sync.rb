@@ -82,14 +82,16 @@ class LabRat::TwitterSync
   def process_tweet(tweet)
     log_info { "New Tweet: #{tweet.uri}" }
 
-    text = convert_all_entities(tweet)
-
+    text =
     if tweet.retweeted?
-      text = "From <a href=\"https://twitter.com/#{tweet.user.screen_name}\">@#{tweet.user.screen_name}</a>:\n" + text
+      "From <a href=\"https://twitter.com/#{tweet.user.screen_name}\">@#{tweet.user.screen_name}</a>:\n" +
+      convert_all_entities(tweet)
     elsif tweet.quoted_status?
-      text = text + "\n\n" +
-        "From <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
-        convert_all_entities(tweet.quoted_status)
+      convert_all_entities(tweet) + "\n\n" +
+      "From <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
+      convert_all_entities(tweet.quoted_status)
+    else
+      convert_all_entities(tweet)
     end
 
     text = text + "\n\n<a href=\"#{tweet.uri}\">Reply</a>"
