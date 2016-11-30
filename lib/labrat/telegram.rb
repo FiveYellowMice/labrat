@@ -35,7 +35,7 @@ class LabRat::Telegram
                   end
                 end
               end
-            rescue Telegram::Bot::Exceptions::ResponseError => e
+            rescue Telegram::Bot::Exceptions::ResponseError, Faraday::ConnectionFailed => e
               log_error e
             end
           else
