@@ -7,6 +7,9 @@ require 'active_support/core_ext/string/inflections'
 require 'time'
 require 'rss'
 
+##
+# Fetch Nyaa Cat BBS and form an RSS feed.
+
 class LabRat::NyaaCatFeed
 
 
@@ -39,6 +42,8 @@ class LabRat::NyaaCatFeed
   def run
     log_info { 'Running...' }
 
+    # Step 1/5: Get a session, and get CSRF token.
+
     response = Faraday.get do |req|
       req.url 'https://bbs.nyaa.cat/'
       req.headers['User-Agent'] = USER_AGENT
@@ -46,6 +51,8 @@ class LabRat::NyaaCatFeed
 
     session_cookie = response['Set-Cookie'].match(/flarum_session=(.*?)(?:,|;| |$)/)[1]
     csrf_token = response['X-CSRF-Token']
+
+    # Step 2/5: Log in, get login token.
 
     response = Faraday.post do |req|
       req.url 'https://bbs.nyaa.cat/login'
@@ -61,6 +68,8 @@ class LabRat::NyaaCatFeed
 
     login_token = response['Set-Cookie'].match(/flarum_remember=(.*?)(?:,|;| |$)/)[1]
 
+    # Step 3/5: Get data needed.
+
     response = Faraday.get do |req|
       req.url 'https://bbs.nyaa.cat/api/discussions',
         'include' => %w[start_user start_post tags].map{|s| s.camelize(:lower) }.join(','),
@@ -71,6 +80,8 @@ class LabRat::NyaaCatFeed
     end
 
     posts_data = JSON.parse(response.body)
+
+    # Step 4/5: Parse the data it got, form an array of Discussion objects.
 
     discussions = posts_data['data'].map do |discussion_data|
       id             = discussion_data['id']
@@ -89,6 +100,8 @@ class LabRat::NyaaCatFeed
 
       Discussion.new(id, title, start_time, author, tags, content)
     end
+
+    # Step 5/5: Form an RSS feed, save it.
 
     feed = RSS::Maker.make('rss2.0') do |maker|
       maker.channel.title       = 'NyaaBBS Minecraft Tag (Unofficial)'
