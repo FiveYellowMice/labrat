@@ -5,5 +5,6 @@ gem 'faraday'
 gem 'activesupport'
 gem 'concurrent-ruby'
 
+gem 'thin'
 gem 'telegram-bot-ruby'
 gem 'twitter'
