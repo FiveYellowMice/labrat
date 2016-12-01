@@ -43,7 +43,7 @@ module LabRat::Bootstrap
       end
     end.parse!
 
-    @config = Config.new(Config::HTTP.new, Config::Telegram.new, Config::RSS.new, Config::Twitter.new)
+    @config = Config.new(Config::HTTP.new, Config::Telegram.new, Config::RSS.new, Config::Twitter.new, Config::NyaaCatFeed.new)
 
     self.instance_eval(File.read(@options.config_file_path))
   end
@@ -64,8 +64,9 @@ module LabRat::Bootstrap
     @logger.info(self.class.name) { "Starting LabRat..." }
     Thread.abort_on_exception = true
 
-    @telegram = LabRat::Telegram.new(self)
-    @twitter_sync = LabRat::TwitterSync.new(self)
+    @telegram = LabRat::Telegram.new(self) if @config.telegram.token
+    @twitter_sync = LabRat::TwitterSync.new(self) if @config.twitter.consumer_key
+    @nyaa_cat_feed = LabRat::NyaaCatFeed.new(self) if @config.nyaa_cat_feed.password
 
     sleep
   end
@@ -73,13 +74,14 @@ module LabRat::Bootstrap
 
   Options = Struct.new(:config_file_path, :data_dir, :debug_mode, :test_tweet)
 
-  Config = Struct.new(:http, :telegram, :rss, :twitter)
+  Config = Struct.new(:http, :telegram, :rss, :twitter, :nyaa_cat_feed)
 
   class Config
-    HTTP     = Struct.new(:address, :port)
-    Telegram = Struct.new(:username, :token, :owner_id)
-    RSS      = Struct.new(:url, :target_channel)
-    Twitter  = Struct.new(:consumer_key, :consumer_secret, :access_token, :access_token_secret, :target_channel)
+    HTTP        = Struct.new(:address, :port)
+    Telegram    = Struct.new(:username, :token, :owner_id)
+    RSS         = Struct.new(:url, :target_channel)
+    Twitter     = Struct.new(:consumer_key, :consumer_secret, :access_token, :access_token_secret, :target_channel)
+    NyaaCatFeed = Struct.new(:password, :interval)
   end
 
 

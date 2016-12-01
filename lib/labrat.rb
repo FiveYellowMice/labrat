@@ -7,6 +7,7 @@ class LabRat
   autoload :Util,        'labrat/util'
   autoload :Telegram,    'labrat/telegram'
   autoload :TwitterSync, 'labrat/twitter_sync'
+  autoload :NyaaCatFeed, 'labrat/nyaa_cat_feed'
 
   include Bootstrap
 
