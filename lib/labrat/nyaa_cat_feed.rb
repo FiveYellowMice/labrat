@@ -19,8 +19,8 @@ class LabRat::NyaaCatFeed
 
 
   USER_AGENT =
-    "LabRat (+https://github.com/FiveYellowMice/labrat/blob/master/lib/labrat/nyaa_cat_feed.rb) \n" +
-    "Faraday/#{Gem.loaded_specs['faraday'].version} \n" +
+    "LabRat (+https://github.com/FiveYellowMice/labrat/blob/master/lib/labrat/nyaa_cat_feed.rb) " +
+    "Faraday/#{Gem.loaded_specs['faraday'].version} " +
     "Ruby/#{RUBY_VERSION}"
 
   POST_URL_FORMAT = 'https://bbs.nyaa.cat/d/%s'
