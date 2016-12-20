@@ -35,8 +35,11 @@ class LabRat::Telegram
                   end
                 end
               end
-            rescue Telegram::Bot::Exceptions::ResponseError, Faraday::ConnectionFailed => e
+            rescue Telegram::Bot::Exceptions::ResponseError => e
               log_error e
+            rescue Faraday::ConnectionFailed => e
+              log_error e
+              sleep 0.5
             end
           else
             sleep
