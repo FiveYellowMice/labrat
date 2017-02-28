@@ -223,6 +223,7 @@ class LabRat::TwitterSync
           @bot.telegram.api.send_photo(
             chat_id: @config.twitter.target_channel,
             photo: media.media_url_https,
+            caption: media.url,
             disable_notification: true
           )
         when Twitter::Media::Video
