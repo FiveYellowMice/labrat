@@ -1,6 +1,7 @@
 require 'cgi'
 require 'json'
 require 'concurrent'
+require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/numeric/time'
 require 'twitter'
 
@@ -84,7 +85,7 @@ class LabRat::TwitterSync
   def process_tweet(tweet)
     log_info { "New Tweet: #{tweet.uri}" }
 
-    if tweet.retweeted?
+    if tweet.retweeted_status.present?
       text =
       "From <a href=\"https://twitter.com/#{tweet.retweeted_status.user.screen_name}\">@#{tweet.retweeted_status.user.screen_name}</a>:\n" +
       convert_all_entities(tweet.retweeted_status)
@@ -237,6 +238,7 @@ class LabRat::TwitterSync
             @bot.telegram.api.send_video(
               chat_id: @config.twitter.target_channel,
               video: video_url,
+              caption: media.url,
               disable_notification: true
             )
           end
