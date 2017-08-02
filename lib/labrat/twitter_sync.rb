@@ -293,14 +293,14 @@ class LabRat::TwitterSync
 
 
   ##
-  # Escape HTML characters.
+  # Escape HTML special characters in Telegram's way
 
   def h(str)
-    str.to_s.
-    gsub('&', '&amp;').
-    gsub('"', '&quot;').
-    gsub('<', '&lt;').
-    gsub('>', '&gt;')
+    CGI.unescape_html(str.to_s)
+    .gsub('&', '&amp;')
+    .gsub('"', '&quot;')
+    .gsub('<', '&lt;')
+    .gsub('>', '&gt;')
   end
 
   private :h
