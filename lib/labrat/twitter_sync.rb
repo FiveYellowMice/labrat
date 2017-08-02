@@ -87,22 +87,21 @@ class LabRat::TwitterSync
 
     if tweet.retweeted_status.present?
       text =
-      "From <a href=\"https://twitter.com/#{tweet.retweeted_status.user.screen_name}\">@#{tweet.retweeted_status.user.screen_name}</a>:\n" +
+      "Retweeted from <a href=\"https://twitter.com/#{tweet.retweeted_status.user.screen_name}\">@#{tweet.retweeted_status.user.screen_name}</a>:\n" +
       convert_all_entities(tweet.retweeted_status)
 
-      send_media_of tweet.retweeted_status
+      send_media_of tweet.retweeted_status, retweeted: true
 
     elsif tweet.quoted_status?
       text =
       convert_all_entities(tweet) + "\n\n" +
-      "From <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
+      "Retweeted from <a href=\"https://twitter.com/#{tweet.quoted_status.user.screen_name}\">@#{tweet.quoted_status.user.screen_name}</a>:\n" +
       convert_all_entities(tweet.quoted_status)
 
-      send_media_of tweet.quoted_status
+      send_media_of tweet.quoted_status, retweeted: true
 
     else
-      text =
-      convert_all_entities(tweet)
+      text = convert_all_entities(tweet)
 
       send_media_of tweet
 
@@ -214,7 +213,7 @@ class LabRat::TwitterSync
   ##
   # Send media of Tweet.
 
-  def send_media_of(tweet)
+  def send_media_of(tweet, retweeted: false)
     tweet.media.each do |media|
       log_debug { media.class.to_s }
 
@@ -224,7 +223,7 @@ class LabRat::TwitterSync
           @bot.telegram.api.send_photo(
             chat_id: @config.twitter.target_channel,
             photo: media.media_url_https,
-            caption: media.url,
+            caption: retweeted ? 'Retweeted: ' + media.url : media.url,
             disable_notification: true
           )
         when Twitter::Media::Video
@@ -238,7 +237,7 @@ class LabRat::TwitterSync
             @bot.telegram.api.send_video(
               chat_id: @config.twitter.target_channel,
               video: video_url,
-              caption: media.url,
+              caption: retweeted ? 'Retweeted: ' + media.url : media.url,
               disable_notification: true
             )
           end
